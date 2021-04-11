@@ -1,0 +1,19 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © DarkPoolTrading
+// Based on the Function Sine Wave Indicator by RicardoSantos
+
+//@version=4
+study(title='Function Cosine Wave')
+wave_height = input(100)
+wave_duration = input(50)
+n = bar_index
+    
+f_cosine_wave(_wave_height, _wave_duration)=>
+    _pi = 3.14159265359
+    _w = 2 * _pi / _wave_duration
+    _cosine_wave = _wave_height * sin((_w * n) + (_pi/2))
+
+wave = f_cosine_wave(wave_height, wave_duration)
+wave2 = f_cosine_wave(wave_height, close)
+plot(series=wave, title='Normal', color=#FFFFFF)
+plot(series=wave2, title='Price as cycle duration', color=#C9A0DC)
