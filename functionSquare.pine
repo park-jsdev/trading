@@ -1,0 +1,19 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © DarkPoolTrading
+
+//@version=4
+study(title='Function Square Wave')
+wave_height = input(100)
+wave_duration = input(50)
+x = bar_index
+    
+f_square_wave(_wave_height, _wave_duration)=>
+    _pi = 3.14159265359
+    p =  2 * _pi / _wave_duration
+    a = _wave_height
+    _square_wave = sign(sin(2*_pi*x/p))*a
+    
+wave = f_square_wave(wave_height, wave_duration)
+wave2 = f_square_wave(wave_height/2, close)
+plot(series=wave, title='Normal', color=#FFFFFF)
+plot(series=wave2, title='Price as cycle duration', color=#C9A0DC)
