@@ -1,0 +1,88 @@
+// This source code is closed. All rights reserved.
+// © DarkPoolTrading
+
+// Uses a Kalman Filter Average to find a MA using POC.
+// Uses Heisenberg's uncertainty principle to find an uncertainty range, meaning price is likely to fluctuate within that range.
+// takes price as position, and relative momentum as momentum.
+// Uses the proportionality, since h is so small, momentum is multiplied by the Planck constant (h).
+// Derive momentum from relative momentum
+// since uncertainty must be greater than h/2, adding fib levels will make it a useful indicator
+
+//@version=4
+study("Heisenberg Uncertainty Band",shorttitle="HUB",overlay=true)
+
+// inputs 
+len = input(20, title="Length")
+mom = input(4, title="Momentum",minval=0)
+c = close
+up = ema(max(c - c[mom],0),len)
+dn = ema(max(c[mom] - c,0),len)
+rmi = dn == 0 ? 0 : 100 - 100 / (1 + up / dn)
+RM = close / rmi
+
+// POCB Kalman Avg.
+resCustom = input(title="Timeframe", type=input.resolution, defval="240")
+Length = input(title="Kalman Length", type=input.integer, defval=6, minval=1)
+xPrice = security(syminfo.tickerid, resCustom, hlc3)
+xvnoise = abs(xPrice - xPrice[1])
+nfastend = 0.666
+nslowend = 0.0645
+nsignal = abs(xPrice - xPrice[Length])
+nnoise = sum(xvnoise, Length)
+nefratio = iff(nnoise != 0, nsignal / nnoise, 0)
+nsmooth = pow(nefratio * (nfastend - nslowend) + nslowend, 2)
+nAMA = 0.0
+nAMA := nz(nAMA[1]) + nsmooth * (xPrice - nz(nAMA[1]))
+basis = nAMA
+unp = RM
+upper = basis + unp
+lower = basis - unp
+
+// Fibs
+fib1 = input(title="Fibonacci Band 1", type=input.bool, defval=true)
+fib2 = input(title="Fibonacci Band 2", type=input.bool, defval=true)
+fib3 = input(title="Fibonacci Band 3", type=input.bool, defval=true)
+fib4 = input(title="Fibonacci Band 4", type=input.bool, defval=true)
+fib5 = input(title="Fibonacci Band 5", type=input.bool, defval=true)
+
+fibratio1=1.618
+fibratio2=2.618
+fibratio3=4.236
+fibratio4=6.854
+fibratio5=11.090
+r1=unp*fibratio1
+r2=unp*fibratio2
+r3=unp*fibratio3
+r4=unp*fibratio4
+r5=unp*fibratio5
+top5=basis+r5
+top4=basis+r4
+top3=basis+r3
+top2=basis+r2
+top1=basis+r1
+bott1=basis-r1
+bott2=basis-r2
+bott3=basis-r3
+bott4=basis-r4
+bott5=basis-r5
+
+t5=plot(fib5 ? top5 : na, transp=0,title="Upper 5",color=#0000ff)
+t4=plot(fib4 ? top4 : na, transp=0,title="Upper 4",color=#0000ff)
+t3=plot(fib3 ? top3 : na, transp=0,title="Upper 3",color=#0000ff)
+t2=plot(fib2 ? top2 : na, transp=20,title="Upper 2",color=#0000ff)
+t1=plot(fib1 ? top1 : na, transp=40,title="Upper 1",color=#0000ff)
+b1=plot(fib1 ? bott1 : na, transp=40,title="Lower 1",color=#0000ff)
+b2=plot(fib2 ? bott2 : na, transp=20,title="Lower 2",color=#0000ff)
+b3=plot(fib3 ? bott3 : na, transp=0,title="Lower 3",color=#0000ff)
+b4=plot(fib4 ? bott4 : na, transp=0,title="Lower 4",color=#0000ff)
+b5=plot(fib5 ? bott5 : na, transp=0,title="Lower 5",color=#0000ff)
+
+fill(t1,b1,color=#0000ff,transp=85)
+fill(t2,b2,color=#0000ff,transp=85)
+fill(t3,b3,color=#0000ff,transp=85)
+fill(t4,b4,color=#0000ff,transp=85)
+fill(t5,b5,color=#0000ff,transp=85)
+
+plot(basis, color=#0000ff)
+plot(upper, color=#0000ff)
+plot(lower, color=#0000ff)
